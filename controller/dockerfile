@@ -1,0 +1,25 @@
+# cvlib depends on tensorflow, which depends on nvidia/cuda. 
+FROM nvidia/cuda:10.1-base-ubuntu18.04
+
+LABEL version="0.0.1"
+
+LABEL maintainer="mjg"
+
+RUN apt update \
+    && apt install -y python3.6 python3-pip \
+    && apt install -y ruby
+
+WORKDIR /cvlib
+
+RUN pip3 install --upgrade pip; \
+    pip3 install opencv-python tensorflow cvlib; \
+    apt install -y libsm6 libxext6 libxrender-dev libgl1-mesa-glx; \
+    apt remove -y python3-pip
+
+WORKDIR /app
+
+COPY . .
+
+VOLUME [ "/app/blurred-images", "app/source-images" ]
+
+CMD [ "tail", "-f","/dev/null" ]
