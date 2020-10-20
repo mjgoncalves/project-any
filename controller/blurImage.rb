@@ -1,23 +1,44 @@
-args = ARGV
+require 'bunny'
 
-sourceFile = args[0].dup
+def destinationPath(sourcePath)
 
-destinationDir = "blurred-images"
+    destinationFolder = "/blurred-images"
+    
+    sourceFile = sourcePath.dup
 
-system("mkdir -p " + destinationDir)
-
-if sourceFile.include? "/"
-    idx = sourceFile.length - sourceFile.reverse!.index("/")
-    sourceFile.reverse!   
-else
-    idx = 0
+    if sourceFile.include? "/"
+        idx = sourceFile.length - sourceFile.reverse!.index("/")
+        sourceFile.reverse!   
+    else
+        idx = 0
+    end
+    
+    return destinationFolder + "/" + sourcePath[idx..-1]
 end
 
-# assigning to the variable "destination" the string "blurred_images", the character "/" and everything that comes after it
-destination = destinationDir + "/" + sourceFile[idx..-1]
+# RabbitMQ initialization
+# Defining the connection to the specific host (defined in the go code after "@")
+connection = Bunny.new(host: "rabbitmq")
+# Starting the connection
+connection.start
+# Creating the channel to receive messages
+channel = connection.create_channel 
+# Specifying the desired queue
+queue = channel.queue('blur-service')
+sourceFile = ""
 
-# calling the python programm and passing the arguments it needs: the image to be blurred and where it has to be placed
-system("python3 controller/transformation/blur.py " + sourceFile + " " + destination)
-
-#removing original file
-system("rm -f " + sourceFile)
+begin
+    # Receives data from rabbitmq when it hat new messages and defines what has to be done
+    queue.subscribe(block: true) do |  _delivery_info, _properties, filepath |
+        # calling the python programm and passing the arguments it needs: the image to be blurred and where it has to be placed
+        output = system "python3", "transformation/blur.py", filepath, destinationPath(filepath)
+        # Removing the original
+        system("rm -f " + filepath)
+    end
+rescue
+    puts output
+ensure
+    connection.close()
+    #removing original file
+    system("rm -f " + sourceFile)
+end
