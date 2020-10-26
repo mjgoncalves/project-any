@@ -1,0 +1,27 @@
+FROM python:3.8-slim
+
+LABEL version="0.0.1"
+
+RUN apt-get update && apt-get install -y \
+    cmake \
+    g++ \
+    && pip install --upgrade pip
+
+COPY requirements.txt .
+
+RUN pip install -r requirements.txt 
+
+WORKDIR /app
+
+COPY . .
+
+ENTRYPOINT python worker.py
+
+VOLUME ["/source-images", "/blurred-images"]
+
+# try again later
+# && useradd worker \
+    # && mkdir -p /source-images /blurred-images /home/worker/webservice \
+    # && chown -R worker /home/worker /source-images /blurred-images
+# RUN chmod u+rwx /blurred-images
+# USER worker

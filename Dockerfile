@@ -14,18 +14,24 @@ COPY . .
 
 RUN go build -o blur-service cmd/webservice/webservice.go
 
-# FROM scratch not working 
-FROM alpine:3.12 
+FROM alpine:3.12
 
-#check doubt about paths - last change
+RUN adduser -D service \
+    && mkdir -p /source-images /home/service/webservice \
+    && touch /home/service/webservice/metadata.csv \
+    && chown -R service /home/service /source-images
+
+USER service
+
+WORKDIR /home/service/webservice
+
 COPY --from=builder /go/src/github.com/m-goncalves/webservice/index.html .
 
 COPY --from=builder /go/src/github.com/m-goncalves/webservice/blur-service . 
 
-EXPOSE 8080 5672
+EXPOSE 8080
 
-ENTRYPOINT ./blur-service
+ENTRYPOINT  SOURCEDIR=/source-images ./blur-service
 
 VOLUME ["/source-images"]
-
 
