@@ -3,8 +3,8 @@ from PIL import Image, ImageFilter
 import os
 
 class FaceBlur:
-    def __init__(self, sourceImage, destinationPath):
-        self.destinationPath = destinationPath
+    def __init__(self, sourceImage, destinyPath):
+        self.destinyPath = destinyPath
         self.sourceImage = sourceImage
         self.loadSourceImage()
 
@@ -36,7 +36,7 @@ class FaceBlur:
         try:
             os.remove(self.sourceImage)
             self.image = Image.fromarray(self.image)
-            self.image.save(self.destinationPath)
+            self.image.save(self.destinyPath)
         except FileNotFoundError:
-            print(f"file {self.destinationPath} does not exist")
+            print(f"file {self.destinyPath} does not exist")
             exit(1)

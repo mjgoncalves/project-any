@@ -1,4 +1,4 @@
-module github.com/m-goncalves/webservice
+module github.com/mjgoncalves/webservice
 
 go 1.15
 

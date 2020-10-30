@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-
 	"github.com/streadway/amqp"
 )
 
@@ -18,22 +17,20 @@ func formatter(err error, msg string) error {
 
 func init() {
 	var err error
-	// Accessing the rabbitmq host: user and password. the name of the service and the docker-compoose
-	// file and the name assigned to the host here have to match 
-	conn, err = amqp.Dial("amqp://guest:guest@blur-rabbitmq:5672")
+
+	url := os.Getenv("AMQP_URL")
+
+	conn, err = amqp.Dial(url) // Access to linked rabbitmq host
 	if err != nil {
 		logErr(err, "Failed to connect to RabbitMQ")
 	}
 
-	// Opening a server channel to process the messages (It makes possible to interact to the rabbitmq instance)
 	channel, err = conn.Channel()
 	if err != nil {
-		logErr(err, "Failed openning a channel")
+		logErr(err, "Failed to open a channel")
 	}
 
-	//Declaring the queue, which will
 	queue, err = channel.QueueDeclare(
-		// Assigning a name to the declared queue
 		"blur-service",
 		false,
 		false,
@@ -48,14 +45,12 @@ func init() {
 }
 
 func sendImage(path string) error {
-	// sends the messages to the server
 	err := channel.Publish(
 		"",
 		queue.Name,
 		false,
 		false,
 		amqp.Publishing{
-			//type and content of the message to be sent
 			ContentType: "text/plain",
 			Body:        []byte(path),
 		})

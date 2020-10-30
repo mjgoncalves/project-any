@@ -1,0 +1,51 @@
+{
+    "users": [
+      {
+        "name": "user",
+        "password": "password",
+        "tags": "administrator"
+      }
+    ],
+    "vhosts": [
+      {
+        "name": "/"
+      }
+    ],
+    "permissions": [
+      {
+        "user": "user",
+        "vhost": "/",
+        "configure": ".*",
+        "write": ".*",
+        "read": ".*"
+      }
+    ],
+    "topic_permissions": [
+      
+    ],
+    "parameters": [
+      
+    ],
+    "global_parameters": [
+      {
+        "name": "blur-rabbitmq",
+        "value": "rabbit@blur_cluster"
+      },
+      {
+        "name": "internal_cluster_id",
+        "value": "rabbitmq-cluster-id-H9WJXoMN340ikR3N3osGAQ"
+      }
+    ],
+    "policies": [
+      
+    ],
+    "queues": [
+      
+    ],
+    "exchanges": [
+      
+    ],
+    "bindings": [
+      
+    ]
+  }
