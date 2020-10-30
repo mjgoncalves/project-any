@@ -1,29 +1,35 @@
-FROM golang:alpine AS builder
+FROM golang:1.15.2-alpine3.12 AS builder
 
-WORKDIR /go/src/github.com/OakAnderson/webservice
+LABEL version="0.0.1"
+
+WORKDIR /go/src/project
+
+ADD go.mod .
+
+ADD go.sum .
+
+RUN go mod download
 
 COPY . .
 
-RUN go mod download \
-    && go build cmd/webservice/webservice.go
+RUN go build -o blur-service cmd/webservice/webservice.go
 
-FROM alpine
+FROM alpine:3.12
 
-RUN adduser -D service \
-    && mkdir -p /source-images /home/service/webservice \
-    && touch /home/service/webservice/metadata.csv \
-    && chown -R service /home/service /source-images
+RUN adduser -D webservice
 
-USER service
+USER webservice
 
-WORKDIR /home/service/webservice
+WORKDIR /home/webservice
 
-COPY --from=builder \
-    /go/src/github.com/OakAnderson/webservice/webservice \
-    /go/src/github.com/OakAnderson/webservice/index.html /home/service/webservice/
+RUN touch metadata.csv
+
+COPY --from=builder /go/src/project/index.html .
+
+COPY --from=builder /go/src/project/blur-service . 
 
 EXPOSE 8080
 
-VOLUME ["/source-images"]
+ENTRYPOINT  SOURCEDIR=/source-images ./blur-service
 
-ENTRYPOINT SOURCEDIR=/source-images ./webservice
+VOLUME ["/source-images"]
