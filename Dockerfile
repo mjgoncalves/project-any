@@ -33,3 +33,4 @@ EXPOSE 8080
 ENTRYPOINT  SOURCEDIR=/source-images ./blur-service
 
 VOLUME ["/source-images"]
+

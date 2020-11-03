@@ -3,24 +3,26 @@ from PIL import Image, ImageFilter
 from blur import FaceBlur
 from pika import BlockingConnection, ConnectionParameters
 
-destinyFolder = "/blurred-images"
+destinationFolder = "/blurred-images"
 
-def destinyPath(sourcePath) -> str:
+def destinationPath(sourcePath) -> str:
     if not isinstance(sourcePath, str):
         sourcePath = sourcePath.decode("utf-8")
     barIdx = sourcePath.rfind("/")
     if barIdx > 0:
         sourcePath = sourcePath[barIdx+1:]
 
-    return f"{destinyFolder}/{sourcePath}"
+    return f"{destinationFolder}/{sourcePath}"
 
 def main():
-    connection = BlockingConnection(ConnectionParameters("rabbitmq"))
+    connection = BlockingConnection(ConnectionParameters("blur-rabbitmq"))
     channel = connection.channel()
     channel.queue_declare(queue="blur-service")
 
     def callback(ch, method, properties, body):
-        blur = FaceBlur(body, destinyPath(body))
+        if isinstance(body, bytes):
+            body = body.decode("utf-8")
+        blur = FaceBlur(body, destinationPath(body))
         blur.locateFaces()
         blur.blurFaces()
         blur.save()

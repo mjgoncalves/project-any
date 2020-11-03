@@ -2,6 +2,8 @@ package server
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/streadway/amqp"
 )
 
@@ -20,17 +22,20 @@ func init() {
 
 	url := os.Getenv("AMQP_URL")
 
-	conn, err = amqp.Dial(url) // Access to linked rabbitmq host
+	conn, err = amqp.Dial(url)
 	if err != nil {
 		logErr(err, "Failed to connect to RabbitMQ")
 	}
 
+	// Opening a server channel to process the messages (It makes possible to interact to the rabbitmq instance)
 	channel, err = conn.Channel()
 	if err != nil {
-		logErr(err, "Failed to open a channel")
+		logErr(err, "Failed openning a channel")
 	}
 
+	//Declaring the queue, which will
 	queue, err = channel.QueueDeclare(
+		// Assigning a name to the declared queue
 		"blur-service",
 		false,
 		false,
@@ -45,12 +50,14 @@ func init() {
 }
 
 func sendImage(path string) error {
+	// sends the messages to the server
 	err := channel.Publish(
 		"",
 		queue.Name,
 		false,
 		false,
 		amqp.Publishing{
+			//type and content of the message to be sent
 			ContentType: "text/plain",
 			Body:        []byte(path),
 		})
