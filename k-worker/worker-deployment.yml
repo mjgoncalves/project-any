@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: worker
+spec:
+  selector:
+    matchLabels:
+      app: blur
+  template:
+    metadata:
+      labels:
+        app: blur
+    spec:
+      containers:
+      - name: worker
+        image: marjugoncalves/blur-worker 
+        ports:
+        - containerPort: 8081
+        env:
+          - name: RABBITMQ_USER
+            valueFrom:
+              secretKeyRef:
+                name: webservice-secrets
+                key: RABBITMQ_USER
+          - name: RABBITMQ_PWD
+            valueFrom:
+              secretKeyRef:
+                name: webservice-secrets
+                key: RABBITMQ_PWD
+          - name: RABBITMQ_PORT
+            valueFrom:
+              secretKeyRef:
+                name: webservice-secrets
+                key:  RABBITMQ_PORT
+          - name: RABBITMQ_HOST
+            valueFrom:
+              secretKeyRef:
+                name: webservice-secrets
+                key:  RABBITMQ_HOST
+          - name: RABBITMQ_QUEUE
+            valueFrom:
+              secretKeyRef:
+                name: webservice-secrets
+                key: RABBITMQ_QUEUE
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: webservice-secrets
+                key: AWS_ACCESS_KEY_ID
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: webservice-secrets
+                key: AWS_SECRET_ACCESS_KEY
+          - name: AWS_BUCKET
+            valueFrom:
+              secretKeyRef:
+                name: webservice-secrets
+                key: AWS_BUCKET

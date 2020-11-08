@@ -1,33 +1,35 @@
 version:  '3.3'
-services: 
-     # SERVICE NAME HERE HAS TO MATCH THE NAME ASSIGNED TO THE HOST IN THE PRODUCER/.ENV-file!!!!!!!
-    blur-rabbitmq: 
+services:
+    rabbitmq:
         image: rabbitmq:3-management
-        container_name: blur-rabbitmq
+        container_name: rabbitmq
         restart: always
         hostname: rabbitmq
-        ports: 
-            - 5672:5672
+        ports:
             - 15672:15672
         environment:
             RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
-            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD} 
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PWD}
             RABBITMQ_DEFAULT_VHOST: "/"
-    blur-service: 
+    service:
         depends_on:
-            - blur-rabbitmq
+            - rabbitmq
         build: .
-        container_name: blur-service
+        container_name: service
         restart: always
         volumes:
             #use normal volumes later
             - type: bind
               source: /Users/marcelo/Desktop/source-images
               target: /source-images
-        ports: 
+        ports:
             - 8080:8080
         environment:
-            AMQP_URL: ${AMQP_URL}
+            RABBITMQ_USER: ${RABBITMQ_USER}
+            RABBITMQ_PWD: ${RABBITMQ_PWD}
+            RABBITMQ_HOST: ${RABBITMQ_HOST}
+            RABBITMQ_PORT: ${RABBITMQ_PORT}
+            RABBITMQ_QUEUE: ${RABBITMQ_QUEUE}
             MYSQL_USER: ${MYSQL_USER}
             MYSQL_PASSWORD: ${MYSQL_PASSWORD}
             MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -36,15 +38,21 @@ services:
             AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
             AWS_REGION: ${AWS_REGION}
             AWS_BUCKET: ${AWS_BUCKET}
-    blur-worker: 
+    worker:
         depends_on:
-            - blur-rabbitmq
+            - rabbitmq
         build: worker/
-        container_name: blur-worker
+        container_name: worker
         restart: always
-        environment: 
+        environment:
+            RABBITMQ_USER: ${RABBITMQ_USER}
+            RABBITMQ_PWD: ${RABBITMQ_PWD}
+            RABBITMQ_HOST: ${RABBITMQ_HOST}
+            RABBITMQ_PORT: ${RABBITMQ_PORT}
+            RABBITMQ_QUEUE: ${RABBITMQ_QUEUE}
             AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
             AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+            AWS_BUCKET: ${AWS_BUCKET}
         volumes:
             #use normal volumes later
             - type: bind
@@ -53,20 +61,18 @@ services:
             - type: bind
               source: /Users/marcelo/Desktop/blurred-images
               target: /blurred-images
-    blur-mysql:
-        depends_on: 
-            - blur-rabbitmq
-        build: sql/
-        container_name: blur-mysql
+    mysql:
+        depends_on:
+            - rabbitmq
+        image: mysql:8.0
+        container_name: mysql
         restart: always
-        environment: 
+        environment:
             MYSQL_USER: ${MYSQL_USER}
             MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-            MYSQL_ROOT_PASSWORD: password
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
             MYSQL_DATABASE: ${MYSQL_DATABASE}
-        volumes: 
+        volumes:
             - type: bind
               source: /Users/marcelo/Desktop/blur-mysql
               target: /var/lib/mysql
-        ports:
-            - 3306:3306
